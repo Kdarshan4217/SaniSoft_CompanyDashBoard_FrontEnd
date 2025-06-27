@@ -1,56 +1,40 @@
-// import React from 'react';
-// import { Outlet, Link } from 'react-router-dom';
-// import { Box, Drawer, List, ListItem, ListItemText, Toolbar } from '@mui/material';
 
-// const SidebarLayout = () => {
-//   return (
-//     <Box sx={{ display: 'flex' }}>
-//       {/* Sidebar */}
-//       <Drawer variant="permanent" anchor="left">
-//         <Toolbar />
-//         <List>
-//           <ListItem button component={Link} to="/dashboard">
-//             <ListItemText primary="Dashboard" />
-//           </ListItem>
-//           <ListItem button component={Link} to="/company">
-//             <ListItemText primary="Company" />
-//           </ListItem>
-//           <ListItem button component={Link} to="/orders">
-//             <ListItemText primary="Orders" />
-//           </ListItem>
-//           <ListItem button component={Link} to="/party">
-//             <ListItemText primary="Party Master" />
-//           </ListItem>
-//           <ListItem button component={Link} to="/profile">
-//             <ListItemText primary="Profile" />
-//           </ListItem>
-//         </List>
-//       </Drawer>
-
-//       {/* Main Content */}
-//       <Box component="main" sx={{ flexGrow: 1, p: 3, ml: '240px' }}>
-//         <Toolbar />
-//         <Outlet />
-//       </Box>
-//     </Box>
-//   );
-// };
-
-// export default SidebarLayout;
-
-
-import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { Box, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import Sidebar from './Sidebar';
-import { Box } from '@mui/material';
 
 const SidebarLayout = () => {
-  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <Sidebar currentPath={location.pathname} />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} isMobile={isMobile} />
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minHeight: '100vh',
+          width: '100%',
+          //pl: isMobile ? 0 : sidebarOpen ? '240px' : '70px',
+          pr: 0,
+          pt: 2,
+          transition: 'all 0.3s ease',
+        }}
+      >
+        {isMobile && (
+          <IconButton
+            onClick={() => setSidebarOpen(true)}
+            sx={{ position: 'fixed', top: 10, left: 10, zIndex: 2000 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+
         <Outlet />
       </Box>
     </Box>
@@ -58,4 +42,8 @@ const SidebarLayout = () => {
 };
 
 export default SidebarLayout;
+
+
+
+
 

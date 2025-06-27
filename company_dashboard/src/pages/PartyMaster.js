@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Container,
+  Box,
   Typography,
   Paper,
   Table,
@@ -9,12 +9,10 @@ import {
   TableCell,
   TableBody,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
   DialogActions,
   IconButton,
+  TextField,
+  useMediaQuery
 } from "@mui/material";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
@@ -22,6 +20,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAppContext } from "../context/AppContext";
 import PopupBox from "../PopupWindow/Popupwindow";
+import Page from "./Page";
+import { motion } from "framer-motion";
+import '../styles/Card.css'; // ✅ Importing shared card style
+
+import {
+  pageWrapper,
+  contentContainer,
+  paperBox,
+  headingMotion,
+  tableHeaderCell
+} from "../styles/pageStyles";
 
 const partySchema = Yup.object().shape({
   name: Yup.string().required("Required"),
@@ -32,77 +41,128 @@ const partySchema = Yup.object().shape({
 const PartyMaster = () => {
   const { parties, addParty, deleteParty } = useAppContext();
   const [openDialog, setOpenDialog] = useState(false);
-  const handleDialogBox = () => {
-    setOpenDialog(!openDialog);
-  };
   const [editParty, setEditParty] = useState(null);
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleDialogBox = () => setOpenDialog(!openDialog);
 
   const handleDelete = (id) => {
     deleteParty(id);
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleSubmit = (values, { resetForm }) => {
-    if (editParty) {
-      deleteParty(editParty.id);
-    }
+    if (editParty) deleteParty(editParty.id);
     addParty(values);
     setEditParty(null);
     setOpenDialog(false);
     resetForm();
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Party Master
-      </Typography>
+    <Page>
+      <Box sx={pageWrapper}>
+        <Box sx={contentContainer}>
+          <motion.div {...headingMotion}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Party Master
+            </Typography>
+            <Typography sx={{ color: "gray", mb: 2 }}>
+              Manage your business parties with ease.
+            </Typography>
+          </motion.div>
 
-      <Button
-        variant="contained"
-        onClick={() => {
-          setEditParty(null);
-          setOpenDialog(true);
-        }}
-      >
-        Add New Party
-      </Button>
+          <Button
+            variant="contained"
+            sx={{ mb: 2 }}
+            onClick={() => {
+              setEditParty(null);
+              setOpenDialog(true);
+            }}
+          >
+            + Add New Party
+          </Button>
 
-      <Paper elevation={3} sx={{ mt: 2, p: 2 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Contact</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {parties.map((party) => (
-              <TableRow key={party.id}>
-                <TableCell>{party.name}</TableCell>
-                <TableCell>{party.contact}</TableCell>
-                <TableCell>{party.city}</TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={() => {
-                      setEditParty(party);
-                      setOpenDialog(true);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(party.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+          {!isMobile && (
+            <Box sx={{ width: "100%", overflowX: "auto" }}>
+              <Paper elevation={3} sx={{ minWidth: 600, ...paperBox }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={tableHeaderCell}>Name</TableCell>
+                      <TableCell sx={tableHeaderCell}>Contact</TableCell>
+                      <TableCell sx={tableHeaderCell}>City</TableCell>
+                      <TableCell sx={tableHeaderCell}>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {parties.map((party) => (
+                      <TableRow key={party.id}>
+                        <TableCell>{party.name}</TableCell>
+                        <TableCell>{party.contact}</TableCell>
+                        <TableCell>{party.city}</TableCell>
+                        <TableCell>
+                          <IconButton
+                            onClick={() => {
+                              setEditParty(party);
+                              setOpenDialog(true);
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton onClick={() => handleDelete(party.id)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Paper>
+            </Box>
+          )}
 
-      {/* Dialog Form */}
+          {isMobile && (
+            <Box key={refreshKey}>
+              {parties.map((party) => (
+                <Box key={party.id} className="order-card">
+                  <div className="order-row">
+                    <span className="order-label">Name :</span>
+                    <span className="order-value">{party.name}</span>
+                  </div>
+                  <div className="order-row">
+                    <span className="order-label">Contact :</span>
+                    <span className="order-value">{party.contact}</span>
+                  </div>
+                  <div className="order-row">
+                    <span className="order-label">City :</span>
+                    <span className="order-value">{party.city}</span>
+                  </div>
+                  <Box mt={1}>
+                    <IconButton
+                      onClick={() => {
+                        setEditParty(party);
+                        setOpenDialog(true);
+                      }}
+                      aria-label="edit"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDelete(party.id)}
+                      aria-label="delete"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+      </Box>
 
       <PopupBox
         handleDialogBox={handleDialogBox}
@@ -160,7 +220,7 @@ const PartyMaster = () => {
           )}
         </Formik>
       </PopupBox>
-    </Container>
+    </Page>
   );
 };
 
